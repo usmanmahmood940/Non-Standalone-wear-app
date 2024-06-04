@@ -48,7 +48,7 @@ class MainActivity : ComponentActivity() {
                     val nodes = capabilityInfo?.nodes
                     nodes?.let {
                         for (node in nodes) {
-//                            Log.d(TAG, "Node: $node")
+                            Log.d(TAG, "Node: $node")
                             Wearable.getMessageClient(this@MainActivity)
                                 .sendMessage(node.id, "/message_path", "Hello Wear Os from Usman".toByteArray())
 
