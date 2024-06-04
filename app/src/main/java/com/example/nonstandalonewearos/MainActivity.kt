@@ -2,6 +2,7 @@ package com.example.nonstandalonewearos
 
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Box
@@ -18,6 +19,7 @@ import com.google.android.gms.tasks.OnCompleteListener
 import com.google.android.gms.tasks.Task
 import com.google.android.gms.wearable.CapabilityClient
 import com.google.android.gms.wearable.CapabilityInfo
+import com.google.android.gms.wearable.MessageEvent
 import com.google.android.gms.wearable.Wearable
 
 
@@ -33,6 +35,13 @@ class MainActivity : ComponentActivity() {
                 ) {
                     Greeting(onClick = {connectWearApp()})
                 }
+            }
+        }
+        Wearable.getMessageClient(this).addListener { messageEvent: MessageEvent? ->
+            messageEvent?.let {
+                Log.d(TAG, "Message path: ${it.path}")
+                Log.d(TAG, "Message data: ${String(it.data)}")
+                Toast.makeText(this, "Message: ${String(it.data)}", Toast.LENGTH_SHORT).show()
             }
         }
     }

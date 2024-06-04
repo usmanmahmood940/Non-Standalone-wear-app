@@ -15,6 +15,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -23,6 +24,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.wear.compose.material.Button
+import androidx.wear.compose.material.ButtonDefaults
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.TimeText
@@ -44,9 +47,15 @@ class MainActivity : ComponentActivity() {
         setTheme(android.R.style.Theme_DeviceDefault)
 
         setContent {
-            WearApp("Android")
+            WearApp( onClick = { connectPhoneApp() })
         }
-        connectPhoneApp()
+        Wearable.getMessageClient(this).addListener { messageEvent: MessageEvent? ->
+            messageEvent?.let {
+                Log.d(TAG, "Message path: ${it.path}")
+                Log.d(TAG, "Message data: ${String(it.data)}")
+                Toast.makeText(this, "Message: ${String(it.data)}", Toast.LENGTH_SHORT).show()
+            }
+        }
 
     }
     fun connectPhoneApp() {
@@ -61,6 +70,8 @@ class MainActivity : ComponentActivity() {
                     nodes?.let {
                         for (node in nodes) {
                             Log.d(TAG, "Node: $node")
+                            Wearable.getMessageClient(this@MainActivity)
+                                .sendMessage(node.id, "/message_path", "Hello Usman from Wear OS".toByteArray())
                         }
 
                     }
@@ -69,23 +80,16 @@ class MainActivity : ComponentActivity() {
                 }
             }
         })
-        Wearable.getMessageClient(this).addListener { messageEvent: MessageEvent? ->
-            messageEvent?.let {
-                Log.d(TAG, "Message path: ${it.path}")
-                Log.d(TAG, "Message data: ${String(it.data)}")
-                Toast.makeText(this, "Message: ${String(it.data)}", Toast.LENGTH_SHORT).show()
-            }
-        }
     }
 
     companion object{
-        private const val CAPABILITY_WATCH_APP = "watch_app"
+        private const val CAPABILITY_WATCH_APP = "watch_server"
         private const val TAG = "MainActivity"
     }
 }
 
 @Composable
-fun WearApp(greetingName: String) {
+fun WearApp(greetingName: String="Android",onClick: () -> Unit) {
     NonStandaloneWearOSTheme {
         Box(
             modifier = Modifier
@@ -95,22 +99,21 @@ fun WearApp(greetingName: String) {
         ) {
             TimeText()
             Greeting(greetingName = greetingName)
+            Button(
+                modifier = Modifier.fillMaxWidth().align(Alignment.BottomCenter),
+                onClick = onClick) {
+                Text(text = "Send Message")
+            }
         }
     }
 }
 
 @Composable
-fun Greeting(greetingName: String) {
+fun Greeting(greetingName: String){
     Text(
         modifier = Modifier.fillMaxWidth(),
         textAlign = TextAlign.Center,
         color = MaterialTheme.colors.primary,
         text = stringResource(R.string.hello_world, greetingName)
     )
-}
-
-@Preview(device = Devices.WEAR_OS_SMALL_ROUND, showSystemUi = true)
-@Composable
-fun DefaultPreview() {
-    WearApp("Preview Android")
 }
